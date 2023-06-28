@@ -1,0 +1,8 @@
+Zombies list animation
+
+Death : 0-85
+Attack: 86-165
+Walk : 166-287
+Run : 288-312
+Idle: 313-433
+T-Pose: 434

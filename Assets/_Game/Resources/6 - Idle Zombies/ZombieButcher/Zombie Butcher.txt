@@ -1,0 +1,8 @@
+ZombieButcher:
+
+Fr 05 - 90 : idle
+Fr 95 - 120 : run
+Fr 125 - 200 : attack01
+Fr 205 - 240 : attack02
+Fr 245 - 310 : die
+Fr 315 - 325 : take damage

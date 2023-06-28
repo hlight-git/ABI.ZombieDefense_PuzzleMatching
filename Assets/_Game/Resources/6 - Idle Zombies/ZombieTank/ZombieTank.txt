@@ -1,0 +1,8 @@
+ZombieTank:
+
+Fr 5 - 125 : idle
+Fr 130 - 155 : run
+Fr 160 - 240 : attack01
+Fr 245 - 345 : attack02
+Fr 350 - 450 : die
+Fr 455 - 465 : take damage

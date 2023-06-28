@@ -1,0 +1,7 @@
+ZombieHazzard:
+
+Fr 05 - 135 : idle
+Fr 140 - 162 : run
+Fr 170 - 188 : shoot
+Fr 195 - 285 : die
+Fr 290 - 300 : take damage
