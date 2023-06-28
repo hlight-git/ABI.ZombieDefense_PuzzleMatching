@@ -1,4 +1,5 @@
 using HlightSDK;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -39,6 +40,7 @@ namespace HlightSDK
     public static class Extensions
     {
         public static void Swap<T>(this IList<T> list, int i, int j) => (list[j], list[i]) = (list[i], list[j]);
+        public static T Choice<T>(this IEnumerable<T> choices) => choices.ElementAt(Random.Range(0, choices.Count()));
         public static T Choice<T>(this IList<T> choices) => choices[Random.Range(0, choices.Count)];
         public static T Choice<T>(this IList<T> choices, params T[] excepts)
         {

@@ -16,7 +16,7 @@ public partial class MatchBoard : GameUnit
     List<MatchCell[]> cells;
     List<Task> slideTasks;
     Dictionary<PoolType, UnitStats> statsCache;
-    MatchUnitFactory[] unitFactories;
+    Dictionary<MatchUnitType, MatchUnitFactory> unitFactories;
 
     public bool IsMovable => slideTasks.Count == 0;
     public Task WhenAllSlideTasks => Task.WhenAll(slideTasks);
@@ -41,13 +41,22 @@ public partial class MatchBoard : GameUnit
     }
     void InitFactories()
     {
-        unitFactories = new MatchUnitFactory[Constant.MU_SLOT];
+        unitFactories = new Dictionary<MatchUnitType, MatchUnitFactory>();
 
         for (int i = 0; i < Constant.SELECT_MU_SLOT; i++)
         {
-            unitFactories[i] = new MatchUnitFactory(UserData.Ins.MatchUnitsInUse[i]);
+            MatchUnitData unitData = UserData.Ins.MatchUnitsInUse[i];
+            switch (unitData.Type)
+            {
+                case MatchType.CollectUnit:
+                    unitFactories.Add(unitData.UnitType, new CollectUnitFactory(unitData));
+                    break;
+                case MatchType.Hero:
+                    unitFactories.Add(unitData.UnitType, new HeroFactory(unitData));
+                    break;
+            }
         }
-        unitFactories[Constant.MU_SLOT - 1] = new MatchUnitFactory(new MatchUnitData(MatchType.Bonus));
+        unitFactories.Add(MatchUnitType.Bonus, new CollectUnitFactory(new CollectUnitData(MatchUnitType.Bonus)));
     }
     public void AddRow()
     {
@@ -63,7 +72,7 @@ public partial class MatchBoard : GameUnit
 
     ABSMatchUnit CreateUnit(Vector3 position)
     {
-        MatchUnitFactory factory = unitFactories.Choice();
+        MatchUnitFactory factory = unitFactories.Values.Choice();
         return factory.CreateUnit(position, Quaternion.identity, TF);
     }
 
@@ -102,42 +111,6 @@ public partial class MatchBoard : GameUnit
         return null;
     }
 
-    public void Fill()
-    {
-        // Xét lần lượt các cột, ở mỗi cột lại xét lần lượt từng hàng từ trên xuống dưới
-        for (int icol = 0; icol < width; icol++)
-        {
-            int nullCount = 0;
-            for (int irow = height - 1; irow >= 0; irow--)
-            {
-                // Nếu gặp ô trống thì tăng biến đếm, còn không thì di chuyển unit ở ô này lên ô trống cũ nhất
-                ABSMatchUnit unit = cells[irow][icol].Unit;
-                if (unit == null)
-                {
-                    nullCount++;
-                }
-                else
-                {
-                    MatchCell targetCell = cells[irow + nullCount][icol];
-                    SlideUnitToCell(unit, targetCell);
-                    unit.Cell = targetCell;
-                }
-            }
-            // Sinh ra số lượng unit mới bằng với số lượng ô trống đã đếm để lấp cột
-            Vector3 newUnitPosX = (icol - (width - 1) * 0.5f) * TF.right;
-            Vector3 newUnitPosY = TF.up;
-            for (int i = nullCount; i > 0; i--)
-            {
-                Vector3 newUnitPosZ = - i * TF.forward;
-                ABSMatchUnit unit = CreateUnit(newUnitPosX + newUnitPosY + newUnitPosZ);
-                MatchCell cell = cells[nullCount - i][icol];
-                SlideUnitToCell(unit, cell);
-                unit.Cell = cell;
-            }
-        }
-        CheckMatch();
-    }
-
     MatchDir? RoundMoveDirection(Vector2 direction)
     {
         for (int i = 0; i < matchDirs.Count; i++)
@@ -152,14 +125,6 @@ public partial class MatchBoard : GameUnit
         }
         return null;
     }
-    public void TryMove(ABSMatchUnit unit, Vector2 direction)
-    {
-        MatchDir? roundedMoveDirection = RoundMoveDirection(direction);
-        if (roundedMoveDirection != null && TryMove(unit, roundedMoveDirection.Value))
-        {
-            CheckMatch();
-        }
-    }
     bool TryMove(ABSMatchUnit unit, MatchDir matchDir)
     {
         MatchCell destinationCell = GetNeighborCell(unit.Cell, matchDir);
@@ -171,54 +136,21 @@ public partial class MatchBoard : GameUnit
         return false;
     }
 
-    public async void CheckMatch()
+    void CheckMatch(int irow, int icol, int rightCheckBit, int backwardCheckBit, int rightCheckedVal, int backwardCheckedVal, ref int[,] matchVal)
     {
-        await WhenAllSlideTasks;
-
-        int[,] matchVal = new int[height, width];
-        int rightCheckBit = 9;
-        int backwardCheckBit = 10;
-        int rightChecked = 1 << rightCheckBit;
-        int backwardChecked = 1 << backwardCheckBit;
-
-        for (int irow = height - 1; irow >= 0; irow--)
+        MatchCell curCell = cells[irow][icol];
+        if (curCell.Unit.CanMatch)
         {
-            for (int icol = 0; icol < width; icol++)
+            bool isRightChecked = (matchVal[irow, icol] >> rightCheckBit) % 2 == 1;
+            bool isBackwardChecked = (matchVal[irow, icol] >> backwardCheckBit) % 2 == 1;
+            if (!isRightChecked)
             {
-                MatchCell curCell = cells[irow][icol];
-                if (curCell.Unit.CanMatch)
-                {
-                    bool isRightChecked = (matchVal[irow, icol] >> rightCheckBit) % 2 == 1;
-                    bool isBackwardChecked = (matchVal[irow, icol] >> backwardCheckBit) % 2 == 1;
-                    if (!isRightChecked)
-                    {
-                        CheckMatchSequence(curCell, MatchDir.Right, rightChecked, ref matchVal);
-                    }
-                    if (!isBackwardChecked)
-                    {
-                        CheckMatchSequence(curCell, MatchDir.Backward, backwardChecked, ref matchVal);
-                    }
-                }
+                CheckMatchSequence(curCell, MatchDir.Right, rightCheckedVal, ref matchVal);
             }
-        }
-
-        bool hadMatched = false;
-        for (int irow = height - 1; irow >= 0; irow--)
-        {
-            for (int icol = 0; icol < width; icol++)
+            if (!isBackwardChecked)
             {
-                MatchCell curCell = cells[irow][icol];
-                int curMatchVal = matchVal[irow, icol] - rightChecked - backwardChecked;
-                if (curMatchVal > 0)
-                {
-                    hadMatched = true;
-                    curCell.Unit.OnMatched(curMatchVal);
-                }
+                CheckMatchSequence(curCell, MatchDir.Backward, backwardCheckedVal, ref matchVal);
             }
-        }
-        if (hadMatched)
-        {
-            Fill();
         }
     }
     void CheckMatchSequence(MatchCell startCell, MatchDir dir, int checkedVal, ref int[,] resType)
@@ -255,6 +187,86 @@ public partial class MatchBoard : GameUnit
         return res;
     }
     bool IsContainsSameUnitType(MatchCell hostCell, MatchCell compareCell) => compareCell != null && hostCell.UnitType == compareCell.UnitType;
+    public void Fill()
+    {
+        // Xét lần lượt các cột, ở mỗi cột lại xét lần lượt từng hàng từ trên xuống dưới
+        for (int icol = 0; icol < width; icol++)
+        {
+            int nullCount = 0;
+            for (int irow = height - 1; irow >= 0; irow--)
+            {
+                // Nếu gặp ô trống thì tăng biến đếm, còn không thì di chuyển unit ở ô này lên ô trống cũ nhất
+                ABSMatchUnit unit = cells[irow][icol].Unit;
+                if (unit == null)
+                {
+                    nullCount++;
+                }
+                else
+                {
+                    MatchCell targetCell = cells[irow + nullCount][icol];
+                    SlideUnitToCell(unit, targetCell);
+                    unit.Cell = targetCell;
+                }
+            }
+            // Sinh ra số lượng unit mới bằng với số lượng ô trống đã đếm để lấp cột
+            Vector3 newUnitPosX = (icol - (width - 1) * 0.5f) * TF.right;
+            Vector3 newUnitPosY = TF.up;
+            for (int i = nullCount; i > 0; i--)
+            {
+                Vector3 newUnitPosZ = -i * TF.forward;
+                ABSMatchUnit unit = CreateUnit(newUnitPosX + newUnitPosY + newUnitPosZ);
+                MatchCell cell = cells[nullCount - i][icol];
+                SlideUnitToCell(unit, cell);
+                unit.Cell = cell;
+            }
+        }
+        CheckMatch();
+    }
+    public void TryMove(ABSMatchUnit unit, Vector2 direction)
+    {
+        MatchDir? roundedMoveDirection = RoundMoveDirection(direction);
+        if (roundedMoveDirection != null && TryMove(unit, roundedMoveDirection.Value))
+        {
+            CheckMatch();
+        }
+    }
+    public async void CheckMatch()
+    {
+        await WhenAllSlideTasks;
+
+        int[,] matchVal = new int[height, width];
+        int rightCheckBit = 9;
+        int backwardCheckBit = 10;
+        int rightCheckedVal = 1 << rightCheckBit;
+        int backwardCheckedVal = 1 << backwardCheckBit;
+
+        for (int irow = height - 1; irow >= 0; irow--)
+        {
+            for (int icol = 0; icol < width; icol++)
+            {
+                CheckMatch(irow, icol, rightCheckBit, backwardCheckBit, rightCheckedVal, backwardCheckedVal, ref matchVal);
+            }
+        }
+
+        bool hadMatched = false;
+        for (int irow = height - 1; irow >= 0; irow--)
+        {
+            for (int icol = 0; icol < width; icol++)
+            {
+                MatchCell curCell = cells[irow][icol];
+                int curMatchVal = matchVal[irow, icol] - rightCheckedVal - backwardCheckedVal;
+                if (curMatchVal > 0)
+                {
+                    hadMatched = true;
+                    curCell.Unit.OnMatched(curMatchVal);
+                }
+            }
+        }
+        if (hadMatched)
+        {
+            Fill();
+        }
+    }
 }
 
 public partial class MatchBoard

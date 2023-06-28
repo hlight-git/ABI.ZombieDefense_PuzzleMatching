@@ -6,12 +6,12 @@ using UnityEngine;
 public class SampleStatsCollection : SingletonScriptableObject<SampleStatsCollection>
 {
     [SerializeField] List<SampleStatsItem> list;
-    public T Get<T>(MatchType key) where T : SampleStats => (T) list.Find(x => x.key == key).value;
+    public T Get<T>(MatchUnitType key) where T : SampleStats => (T) list.Find(x => x.key == key).value;
 }
 
 [System.Serializable]
 public class SampleStatsItem
 {
-    public MatchType key;
+    public MatchUnitType key;
     public SampleStats value;
 }

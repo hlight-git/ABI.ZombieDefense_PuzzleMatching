@@ -2,23 +2,12 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class MatchUnitData
-{
-    public MatchType MatchType;
-    public int Level;
-
-    public MatchUnitData(MatchType matchType)
-    {
-        MatchType = matchType;
-        Level = 1;
-    }
-}
-
 // Keys
 public partial class UserData
 {
     class Key
     {
+        internal const string MATCH_UNIT_TYPE_IN_USE_SUFFIX = "_TYPE";
         internal const string IS_FIRST_LOAD = "IsFirstLoad";
 
         internal static readonly string[] MATCH_UNITS_IN_USE =
@@ -28,18 +17,19 @@ public partial class UserData
             "Slot3",
             "Slot4"
         };
+
     }
 }
 
 [CreateAssetMenu(fileName = "UserData", menuName = "Scriptable Objects/User Data")]
 public partial class UserData : SingletonScriptableObject<UserData>
 {
-    readonly MatchType[] DEFAULT_MATCH_UNITS =
+    readonly MatchUnitType[] DEFAULT_MATCH_UNITS =
     {
-        MatchType.Melee1,
-        MatchType.Melee2,
-        MatchType.Range1,
-        MatchType.Range2,
+        MatchUnitType.Melee1,
+        MatchUnitType.Melee2,
+        MatchUnitType.Range1,
+        MatchUnitType.Range2,
     };
 
     readonly MatchUnitData[] matchUnitsInUse = new MatchUnitData[Constant.SELECT_MU_SLOT];
@@ -54,10 +44,11 @@ public partial class UserData : SingletonScriptableObject<UserData>
         for (int i = 0; i < Constant.SELECT_MU_SLOT; i++)
         {
             string key = DEFAULT_MATCH_UNITS[i].ToString();
-            MatchUnitData heroData = new MatchUnitData(DEFAULT_MATCH_UNITS[i]);
+            HeroData heroData = new HeroData(DEFAULT_MATCH_UNITS[i]);
             SetDataState(key, DataState.Unlocked);
             SetObjectData(key, heroData);
             SetStringData(Key.MATCH_UNITS_IN_USE[i], key);
+            SetEnumData(Key.MATCH_UNITS_IN_USE[i] + Key.MATCH_UNIT_TYPE_IN_USE_SUFFIX, MatchType.Hero);
         }
     }
 
@@ -70,7 +61,15 @@ public partial class UserData : SingletonScriptableObject<UserData>
     {
         for (int i = 0; i < Constant.SELECT_MU_SLOT; i++)
         {
-            matchUnitsInUse[i] = GetObjectData<MatchUnitData>(PlayerPrefs.GetString(Key.MATCH_UNITS_IN_USE[i]));
+            MatchType type = GetEnumData(Key.MATCH_UNITS_IN_USE[i] + Key.MATCH_UNIT_TYPE_IN_USE_SUFFIX, MatchType.Hero);
+            if (type == MatchType.CollectUnit)
+            {
+                matchUnitsInUse[i] = GetObjectData<CollectUnitData>(PlayerPrefs.GetString(Key.MATCH_UNITS_IN_USE[i]));
+            }
+            else if (type == MatchType.Hero)
+            {
+                matchUnitsInUse[i] = GetObjectData<HeroData>(PlayerPrefs.GetString(Key.MATCH_UNITS_IN_USE[i]));
+            }
         }
     }
 
