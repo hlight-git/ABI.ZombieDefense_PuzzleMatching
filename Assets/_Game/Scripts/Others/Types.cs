@@ -32,6 +32,12 @@ public enum PoolType
     MU_Range2_2 = 12012,
     MU_Range2_3 = 12013,
     MU_Range2_4 = 12014,
+
+    //
+    Zom_Small = 20001,
+    Zom_Medium = 20002,
+    Zom_Large = 20003,
+    Zom_Boss = 20004,
 }
 
 public enum MatchUnitType
@@ -49,9 +55,10 @@ public enum MatchType
     Hero
 }
 
-public enum EnemyType
+public enum ZombieType
 {
-    Small,
-    Medium,
-    Large
+    Small = PoolType.Zom_Small,
+    Medium = PoolType.Zom_Medium,
+    Large = PoolType.Zom_Large,
+    Boss = PoolType.Zom_Boss
 }
