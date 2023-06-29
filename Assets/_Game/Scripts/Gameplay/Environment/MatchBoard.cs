@@ -21,11 +21,11 @@ public partial class MatchBoard : GameUnit
     public bool IsMovable => slideTasks.Count == 0;
     public Task WhenAllSlideTasks => Task.WhenAll(slideTasks);
 
-    public void OnInit(PlatformBoard platformBoard, int width, int height)
+    public void OnInit(Level level)
     {
-        this.width = width;
-        this.height = height;
-        nextRowNode = platformBoard.RowLinkedList.First;
+        width = level.MatchBoardWidth;
+        height = level.MatchBoardHeight;
+        nextRowNode = level.RowLinkedList.First;
 
         cells = new List<MatchCell[]>();
         slideTasks = new List<Task>();

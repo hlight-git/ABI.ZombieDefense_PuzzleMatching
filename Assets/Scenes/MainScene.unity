@@ -840,9 +840,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   poolType: 0
-  rowPrefab: {fileID: 2382671780485461218, guid: c79cc325b7f525f419405d8e778ba1e8, type: 3}
-  width: 6
-  height: 36
 --- !u!1 &6421313739239314549
 GameObject:
   m_ObjectHideFlags: 0
@@ -1042,9 +1039,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15519cbbbeb6c484d85bf2c4e478fc4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platformBoard: {fileID: 1810265064}
   matchBoard: {fileID: 1374564967}
   sampleStatsCollection: {fileID: 11400000, guid: 0a05355451e25304aaeecbe9b300727e, type: 2}
+  levels: []
 --- !u!1 &6421313740478819875
 GameObject:
   m_ObjectHideFlags: 0

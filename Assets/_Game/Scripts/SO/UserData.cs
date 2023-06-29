@@ -7,8 +7,10 @@ public partial class UserData
 {
     class Key
     {
+        internal const string STATE_PREFIX = "STATE_";
         internal const string MATCH_UNIT_TYPE_IN_USE_SUFFIX = "_TYPE";
         internal const string IS_FIRST_LOAD = "IsFirstLoad";
+        internal const string LEVEL = "Level";
 
         internal static readonly string[] MATCH_UNITS_IN_USE =
         {
@@ -33,6 +35,7 @@ public partial class UserData : SingletonScriptableObject<UserData>
     };
 
     readonly MatchUnitData[] matchUnitsInUse = new MatchUnitData[Constant.SELECT_MU_SLOT];
+    public int CurrentLevel;
     public MatchUnitData[] MatchUnitsInUse => matchUnitsInUse;
 
     void OnFirstLoad()
@@ -55,6 +58,7 @@ public partial class UserData : SingletonScriptableObject<UserData>
     void OnNormalLoad()
     {
         LoadMatchUnitsInUse();
+        CurrentLevel = PlayerPrefs.GetInt(Key.LEVEL, 0);
     }
 
     void LoadMatchUnitsInUse()
@@ -99,7 +103,6 @@ public partial class UserData : SingletonScriptableObject<UserData>
     public void OnResetData()
     {
         PlayerPrefs.DeleteAll();
-        OnLoadData();
     }
 }
 public enum DataState
@@ -112,7 +115,6 @@ public enum DataState
 // Data methods
 public partial class UserData
 {
-    const string STATE_PREFIX = "STATE_";
     public DataState GetDataState(string key, DataState state = 0) => (DataState)PlayerPrefs.GetInt(key, (int)state);
     public DataState GetDataState(string key, int ID, DataState state = DataState.Lock) => GetDataState(key + ID, (int)state);
     public T GetEnumData<T>(string key, T defaultValue) where T : System.Enum
@@ -134,7 +136,7 @@ public partial class UserData
     public void SetEnumData<E>(string key, E value) => PlayerPrefs.SetInt(key, (int)(object)value);
     public void SetObjectData<T>(string key, T value) => PlayerPrefs.SetString(key, JsonUtility.ToJson(value));
     public void SetDataState(string key, int ID, DataState state) => SetDataState(key + ID, state);
-    public void SetDataState(string key, DataState state) => PlayerPrefs.SetInt(STATE_PREFIX + key, (int)state);
+    public void SetDataState(string key, DataState state) => PlayerPrefs.SetInt(Key.STATE_PREFIX + key, (int)state);
 
     public void SetIntData(string key, ref int variable, int value)
     {
