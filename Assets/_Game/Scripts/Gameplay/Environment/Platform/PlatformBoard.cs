@@ -4,22 +4,30 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Level : GameUnit
+public class PlatformBoard : GameUnit
 {
-    int width;
-    int height;
-
-    public int MatchBoardWidth { get; private set; }
-    public int MatchBoardHeight { get; private set; }
+    [SerializeField] PlatformRow rowPrefab;
+    [SerializeField] int width;
+    [SerializeField] int height;
     public LinkedList<PlatformRow> RowLinkedList { get; private set; }
 
-    public void OnInit(int width, int height, LinkedList<PlatformRow> rowLinkedList, int matchBoardWidth, int matchBoardHeight)
+    private void Awake()
     {
-        this.width = width;
-        this.height = height;
-        RowLinkedList = rowLinkedList;
-        MatchBoardWidth = matchBoardWidth;
-        MatchBoardHeight = matchBoardHeight;
+        RowLinkedList = new LinkedList<PlatformRow>();
+        Vector3 rowPosX = (1 - width) * 0.5f * TF.right;
+        for (int c = 0; c < height; c++)
+        {
+            Vector3 rowPosZ = c * TF.forward;
+            PlatformRow row = Instantiate(
+                rowPrefab,
+                TF.position + rowPosX + rowPosZ,
+                Quaternion.identity,
+                TF
+            );
+            RowLinkedList.AddLast(row);
+            row.OnInit(width);
+            row.Floating(OnARowFloatingToEndPoint);
+        }
     }
     private void OnARowFloatingToEndPoint(PlatformRow row)
     {
@@ -32,15 +40,6 @@ public class Level : GameUnit
         if (GameManager.IsState(GameState.MainMenu))
         {
             row.Floating(OnARowFloatingToEndPoint);
-        }
-    }
-    public void StartFloating()
-    {
-        LinkedListNode<PlatformRow> node = RowLinkedList.First;
-        while (node != null)
-        {
-            node.Value.Floating(OnARowFloatingToEndPoint);
-            node = node.Next;
         }
     }
     /// <summary>

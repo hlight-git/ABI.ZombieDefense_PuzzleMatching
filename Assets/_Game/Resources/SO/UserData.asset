@@ -12,5 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d4e98cdcb1459e40adfed2d358987e5, type: 3}
   m_Name: UserData
   m_EditorClassIdentifier: 
-  CurrentLevel: 0
   TestMode: 0

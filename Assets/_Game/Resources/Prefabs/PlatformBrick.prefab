@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6939202048556044481}
   - component: {fileID: -5526957049958258537}
   m_Layer: 0
-  m_Name: PlatformTile
+  m_Name: PlatformBrick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
