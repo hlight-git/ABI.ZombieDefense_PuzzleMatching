@@ -7,8 +7,9 @@ using UnityEngine;
 
 public class PlatformRow : GameUnit
 {
+    [SerializeField, HideInInspector] PlatformTile[] tiles;
     Tween floatTweenZ;
-    public PlatformTile[] Tiles { get; set; }
+    public PlatformTile[] Tiles { get => tiles; set => tiles = value; }
     public Task FloatingTask => floatTweenZ.AsyncWaitForCompletion();
     public void Floating(Action<PlatformRow> OnReachedEndValueAction)
     {

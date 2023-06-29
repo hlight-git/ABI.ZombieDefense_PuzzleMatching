@@ -15,10 +15,19 @@ public class Test : MonoBehaviour
 {
     //public TestSO unitStats;
     //public TestSO unitStats2;
+    void Move()
+    {
+        transform.DOMove(transform.position - transform.position, 2).SetSpeedBased(true).SetEase(Ease.Linear).OnComplete(Again);
+    }
+    void Again()
+    {
+        transform.position += transform.forward;
+        Move();
+    }
     private void Start()
     {
-        EnumTest[] t = new EnumTest[10];
-        print(t[0] + " " + t[1]);
+        Time.timeScale = 0.1f;
+        Move();
         //unitStats2 = Instantiate(unitStats);
         //print(unitStats2.LevelStatsList.Count);
         //print(unitStats2.EvolCoeffsList.Count);

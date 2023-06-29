@@ -6,20 +6,28 @@ using UnityEngine;
 
 public class Level : GameUnit
 {
-    int width;
-    int height;
+    [SerializeField] MatchBoard matchBoard;
+    [SerializeField, HideInInspector] List<PlatformRow> rows;
+    [SerializeField, HideInInspector] int width;
+    [SerializeField, HideInInspector] int height;
 
-    public int MatchBoardWidth { get; private set; }
-    public int MatchBoardHeight { get; private set; }
+    public MatchBoard MatchBoard => matchBoard;
     public LinkedList<PlatformRow> RowLinkedList { get; private set; }
 
-    public void OnInit(int width, int height, LinkedList<PlatformRow> rowLinkedList, int matchBoardWidth, int matchBoardHeight)
+    private void Awake()
+    {
+        RowLinkedList = new LinkedList<PlatformRow>();
+        for (int i = 0; i < rows.Count; i++)
+        {
+            RowLinkedList.AddLast(rows[i]);
+        }
+    }
+    public void OnSpawn(int width, int height, List<PlatformRow> rows, int matchBoardWidth, int matchBoardHeight)
     {
         this.width = width;
         this.height = height;
-        RowLinkedList = rowLinkedList;
-        MatchBoardWidth = matchBoardWidth;
-        MatchBoardHeight = matchBoardHeight;
+        this.rows = rows;
+        matchBoard.OnSpawn(matchBoardWidth, matchBoardHeight);
     }
     private void OnARowFloatingToEndPoint(PlatformRow row)
     {

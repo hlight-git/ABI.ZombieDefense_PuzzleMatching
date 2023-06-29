@@ -5,15 +5,14 @@ using UnityEngine;
 
 public class LevelManager : Singleton<LevelManager>
 {
-    [SerializeField] MatchBoard matchBoard;
-    [SerializeField] SampleStatsCollection sampleStatsCollection;
-
     [SerializeField] Level[] levels;
     Level currentLevel;
 
-
-    //public SampleStatsCollection SampleStatsCollection => sampleStatsCollection;
-
+    MatchBoard matchBoard => currentLevel.MatchBoard;
+    private void Start()
+    {
+        OnLoadCurrentLevel();
+    }
     public void OnStart()
     {
         GameManager.ChangeState(GameState.GamePlay);
@@ -28,7 +27,7 @@ public class LevelManager : Singleton<LevelManager>
     }
     void OnInitLevel()
     {
-        matchBoard.OnInit(currentLevel);
+        matchBoard.OnInit(currentLevel.RowLinkedList.First);
     }
 
     void SpawnZombie(ZombieType zombieType)

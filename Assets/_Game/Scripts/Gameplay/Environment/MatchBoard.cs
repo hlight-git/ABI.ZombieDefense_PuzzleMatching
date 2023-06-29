@@ -10,32 +10,34 @@ public partial class MatchBoard : GameUnit
 {
     [SerializeField] MatchUnitGrabber matchUnitGrabber;
 
-    int width;
-    int height;
+    [SerializeField, HideInInspector] int width;
+    [SerializeField, HideInInspector] int height;
+
     LinkedListNode<PlatformRow> nextRowNode;
     List<MatchCell[]> cells;
     List<Task> slideTasks;
-    Dictionary<PoolType, UnitStats> statsCache;
     Dictionary<MatchUnitType, MatchUnitFactory> unitFactories;
 
     public bool IsMovable => slideTasks.Count == 0;
     public Task WhenAllSlideTasks => Task.WhenAll(slideTasks);
 
-    public void OnInit(Level level)
+    public void OnSpawn(int width, int height)
     {
-        width = level.MatchBoardWidth;
-        height = level.MatchBoardHeight;
-        nextRowNode = level.RowLinkedList.First;
+        this.width = width;
+        this.height = height;
+    }
 
+    public void OnInit(LinkedListNode<PlatformRow> firstRowNode)
+    {
         cells = new List<MatchCell[]>();
         slideTasks = new List<Task>();
-        statsCache = new Dictionary<PoolType, UnitStats>();
-        InitFactories();
+        nextRowNode = firstRowNode;
 
         for (int i = 0; i < height; i++)
         {
             AddRow();
         }
+        InitFactories();
         Fill();
         matchUnitGrabber.enabled = true;
     }
