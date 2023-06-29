@@ -10,8 +10,8 @@ public partial class MatchBoard : GameUnit
 {
     [SerializeField] MatchUnitGrabber matchUnitGrabber;
 
-    [SerializeField, HideInInspector] int width;
-    [SerializeField, HideInInspector] int height;
+    int width;
+    int height;
 
     LinkedListNode<PlatformRow> nextRowNode;
     List<MatchCell[]> cells;
@@ -21,14 +21,10 @@ public partial class MatchBoard : GameUnit
     public bool IsMovable => slideTasks.Count == 0;
     public Task WhenAllSlideTasks => Task.WhenAll(slideTasks);
 
-    public void OnSpawn(int width, int height)
+    public void OnInit(LinkedListNode<PlatformRow> firstRowNode, int width, int height)
     {
         this.width = width;
         this.height = height;
-    }
-
-    public void OnInit(LinkedListNode<PlatformRow> firstRowNode)
-    {
         cells = new List<MatchCell[]>();
         slideTasks = new List<Task>();
         nextRowNode = firstRowNode;

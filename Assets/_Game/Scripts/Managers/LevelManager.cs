@@ -1,3 +1,4 @@
+using HlightSDK;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -27,12 +28,17 @@ public class LevelManager : Singleton<LevelManager>
     }
     void OnInitLevel()
     {
-        matchBoard.OnInit(currentLevel.RowLinkedList.First);
+        matchBoard.OnInit(currentLevel.RowLinkedList.First, currentLevel.LevelData.MatchBoardWidth, currentLevel.LevelData.MatchBoardHeight);
     }
+    void SpawnZombie()
+    {
 
+    }
     void SpawnZombie(ZombieType zombieType)
     {
-        
+        PlatformRow row = currentLevel.RowLinkedList.Last.Value;
+        PlatformTile spawnTile = row.Tiles.Choice();
+        SimplePool.Spawn<Zombie>((PoolType)zombieType, spawnTile.StandPosTF.position, Quaternion.Euler(0, 180, 0));
         //Vector3 position = platformBoard.RowLinkedList.Last.Value.
     }
     public void OnLoadLevel(int level)

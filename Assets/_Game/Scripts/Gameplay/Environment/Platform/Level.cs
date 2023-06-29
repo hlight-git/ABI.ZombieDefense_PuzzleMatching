@@ -7,33 +7,33 @@ using UnityEngine;
 public class Level : GameUnit
 {
     [SerializeField] MatchBoard matchBoard;
-    [SerializeField, HideInInspector] List<PlatformRow> rows;
-    [SerializeField, HideInInspector] int width;
-    [SerializeField, HideInInspector] int height;
+    //[SerializeField, HideInInspector] List<PlatformRow> rows;
+    //[SerializeField, HideInInspector] int width;
+    //[SerializeField, HideInInspector] int height;
 
+    //[SerializeField, HideInInspector] int zombieSmallAmount;
+    //[SerializeField, HideInInspector] int zombieMediumAmount;
+    //[SerializeField, HideInInspector] int zombieLargeAmount;
+    [SerializeField, HideInInspector] List<PlatformRow> rows;
+    [SerializeField, HideInInspector] LevelData levelData;
     public MatchBoard MatchBoard => matchBoard;
     public LinkedList<PlatformRow> RowLinkedList { get; private set; }
+    public List<PlatformRow> Rows { get => rows; set => rows = value; }
+    public LevelData LevelData { get => levelData; set => levelData = value; }
 
     private void Awake()
     {
         RowLinkedList = new LinkedList<PlatformRow>();
-        for (int i = 0; i < rows.Count; i++)
+        for (int i = 0; i < Rows.Count; i++)
         {
-            RowLinkedList.AddLast(rows[i]);
+            RowLinkedList.AddLast(Rows[i]);
         }
-    }
-    public void OnSpawn(int width, int height, List<PlatformRow> rows, int matchBoardWidth, int matchBoardHeight)
-    {
-        this.width = width;
-        this.height = height;
-        this.rows = rows;
-        matchBoard.OnSpawn(matchBoardWidth, matchBoardHeight);
     }
     private void OnARowFloatingToEndPoint(PlatformRow row)
     {
         if (TF.position.z > row.TF.position.z)
         {
-            row.TF.position += height * TF.forward;
+            row.TF.position += levelData.Height * TF.forward;
             RowLinkedList.RemoveFirst();
             RowLinkedList.AddLast(row);
         }

@@ -8,20 +8,23 @@ public class LevelToolWindow : EditorWindow
 {
     static Vector2 MIN_WINDOW_SIZE = new Vector2(350, 350);
 
+    LevelData levelData;
+
     Level levelPrefab;
     PlatformRow rowPrefab;
     PlatformTile tilePrefab;
 
     int level;
-    int platformWidth = 6;
-    int platformHeight = 40;
 
-    int matchBoardWidth = 6;
-    int matchBoardHeight = 5;
+    //int platformWidth = 6;
+    //int platformHeight = 40;
 
-    int zombieSmallAmount;
-    int zombieMediumAmount;
-    int zombieLargeAmount;
+    //int matchBoardWidth = 6;
+    //int matchBoardHeight = 5;
+
+    //int zombieSmallAmount;
+    //int zombieMediumAmount;
+    //int zombieLargeAmount;
 
     [MenuItem("Tools/Level Tool")]
     public static void ShowWindow()
@@ -35,10 +38,17 @@ public class LevelToolWindow : EditorWindow
         levelPrefab = Resources.Load<Level>("Prefabs/LevelSample");
         tilePrefab = Resources.Load<PlatformTile>("Prefabs/PlatformTile");
         rowPrefab = Resources.Load<PlatformRow>("Prefabs/PlatformRow");
+
+        level = Resources.LoadAll("Prefabs/Levels").Length + 1;
+    }
+    void InitData()
+    {
+        levelData = CreateInstance<LevelData>();
     }
     private void OnEnable()
     {
         LoadResources();
+        InitData();
     }
     private void OnGUI()
     {
@@ -51,8 +61,8 @@ public class LevelToolWindow : EditorWindow
             levelPrefab = (Level)EditorGUILayout.ObjectField("Level prefab", levelPrefab, typeof(Level), false);
             rowPrefab = (PlatformRow)EditorGUILayout.ObjectField("Row prefab", rowPrefab, typeof(PlatformRow), false);
             tilePrefab = (PlatformTile)EditorGUILayout.ObjectField("Tile prefab", tilePrefab, typeof(PlatformTile), false);
-            platformWidth = EditorGUILayout.IntField("Width", platformWidth);
-            platformHeight = EditorGUILayout.IntField("Height", platformHeight);
+            levelData.Width = EditorGUILayout.IntField("Width", levelData.Width);
+            levelData.Height = EditorGUILayout.IntField("Height", levelData.Height);
         }
         EditorGUILayout.EndVertical();
 
@@ -61,8 +71,8 @@ public class LevelToolWindow : EditorWindow
 
         EditorGUILayout.BeginVertical();
         {
-            matchBoardWidth = EditorGUILayout.IntField("Width", matchBoardWidth);
-            matchBoardHeight = EditorGUILayout.IntField("Height", matchBoardHeight);
+            levelData.MatchBoardWidth = EditorGUILayout.IntField("Width", levelData.MatchBoardWidth);
+            levelData.MatchBoardHeight = EditorGUILayout.IntField("Height", levelData.MatchBoardHeight);
         }
         EditorGUILayout.EndVertical();
 
@@ -71,9 +81,9 @@ public class LevelToolWindow : EditorWindow
 
         EditorGUILayout.BeginVertical();
         {
-            zombieSmallAmount = EditorGUILayout.IntField("Small", zombieSmallAmount);
-            zombieMediumAmount = EditorGUILayout.IntField("Medium", zombieMediumAmount);
-            zombieLargeAmount = EditorGUILayout.IntField("Large", zombieLargeAmount);
+            levelData.ZombieSmallAmount = EditorGUILayout.IntField("Small", levelData.ZombieSmallAmount);
+            levelData.ZombieMediumAmount = EditorGUILayout.IntField("Medium", levelData.ZombieMediumAmount);
+            levelData.ZombieLargeAmount = EditorGUILayout.IntField("Large", levelData.ZombieLargeAmount);
         }
         EditorGUILayout.EndVertical();
 
@@ -84,8 +94,20 @@ public class LevelToolWindow : EditorWindow
     }
     void CreateLevel()
     {
+        CreateFileData();
+        CreateLevelPrefab();
+        level++;
+        InitData();
+    }
+    void CreateFileData()
+    {
+        string savePath = "Assets/_Game/Resources/SO/Levels/" + "Level_" + level + ".asset";
+        AssetDatabase.CreateAsset(levelData, savePath);
+    }
+    void CreateLevelPrefab()
+    {
         Level newLevelPrefab = Instantiate(levelPrefab);
-        
+
         PlatformRow rowPrototype = CreatePlatformRowPrototype();
         GeneratePlatformRows(newLevelPrefab, rowPrototype);
         string savePath = "Assets/_Game/Resources/Prefabs/Levels/" + "Level_" + level + ".prefab";
@@ -95,12 +117,11 @@ public class LevelToolWindow : EditorWindow
         DestroyImmediate(rowPrototype.gameObject);
         DestroyImmediate(newLevelPrefab.gameObject);
     }
-
     PlatformRow CreatePlatformRowPrototype()
     {
         PlatformRow row = Instantiate(rowPrefab);
-        PlatformTile[] tiles = new PlatformTile[platformWidth];
-        for (int r = 0; r < platformWidth; r++)
+        PlatformTile[] tiles = new PlatformTile[levelData.Width];
+        for (int r = 0; r < levelData.Width; r++)
         {
             tiles[r] = Instantiate(
                 tilePrefab,
@@ -116,8 +137,8 @@ public class LevelToolWindow : EditorWindow
     void GeneratePlatformRows(Level level, PlatformRow rowPrototype)
     {
         List<PlatformRow> rows = new List<PlatformRow>();
-        Vector3 rowPosX = (1 - platformWidth) * 0.5f * level.TF.right;
-        for (int c = 0; c < platformHeight; c++)
+        Vector3 rowPosX = (1 - levelData.Width) * 0.5f * level.TF.right;
+        for (int c = 0; c < levelData.Height; c++)
         {
             Vector3 rowPosZ = c * level.TF.forward;
             PlatformRow row = Instantiate(
@@ -128,6 +149,7 @@ public class LevelToolWindow : EditorWindow
             );
             rows.Add(row);
         }
-        level.OnSpawn(platformWidth, platformHeight, rows, matchBoardWidth, matchBoardHeight);
+        level.Rows = rows;
+        level.LevelData = levelData;
     }
 }
